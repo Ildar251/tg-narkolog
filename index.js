@@ -140,8 +140,33 @@ router.route("coupon", async (ctx) => {
     } else if(coupon == 'coupon-2') {
         await ctx.replyWithPhoto(new InputFile("./images/coupon15000.png"));
     }
-    writeToGoogleSheet(ctx.session.data);
-    await ctx.reply(`Данные заполнены и отправлены в таблицу 📊✉️. \n \n 💼 ИНН: ${ctx.session.data.inn} \n 📝 ФИО : ${ctx.session.data.fio} \n 🎟️ Купон: ${ctx.session.data.coupon}` );
+
+    ctx.session.step = 'final';
+
+    const finalKeyboard = new InlineKeyboard()
+        .text('Отправить данные в таблицу 📊✉️📥', `push`).row()
+        .text('Отменить и заполнить заново 🔄📝', `again`);
+
+
+    await ctx.reply(`Данные заполнены ✅. \n \n 💼 ИНН: ${ctx.session.data.inn} \n 📝 ФИО : ${ctx.session.data.fio} \n 🎟️ Купон: ${ctx.session.data.coupon}`, {
+        reply_markup: finalKeyboard
+    } );
+});
+
+
+// Обработка inline кнопок "push" и "again"
+bot.callbackQuery('push', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await writeToGoogleSheet(ctx.session.data);
+    await ctx.reply('Данные успешно отправлены в таблицу! 🚀📊');
+});
+
+bot.callbackQuery('again', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    // Сбросить данные из сессии и перейти к первому шагу
+    ctx.session.data = {};
+    ctx.session.step = 'ask_inn';
+    await ctx.reply('Данные сброшены. Пожалуйста, введите ИНН заново. 🔄🔢');
 });
 
 
