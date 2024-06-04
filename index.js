@@ -14,10 +14,6 @@ const webAppUrlManager = 'https://munoucuchol.beget.app/manager';
 // Количество заказов до подарка
 const ORDERS_FOR_GIFT = 5;
 
-// // Список разрешенных telegramId для менеджеров
-// const allowedManagerIds = [685771488];
-
-// Use session.
 bot.use(session({ initial: () => ({ step: 'default', data: {} }) }));
 
 bot.api.setMyCommands([
@@ -29,11 +25,6 @@ const startKeyboard = new Keyboard()
     .text('История заказов')
     .webApp('Сделать заказ', webAppUrlForm)
     .resized();
-
-const managerKeyboard = new Keyboard()
-    .webApp('Управлять заказами', webAppUrlManager)
-    .resized();
-
 
 bot.command('start', async (ctx) => {
     const referralId = ctx.message.text.split(' ')[1];
@@ -49,7 +40,7 @@ bot.command('start', async (ctx) => {
         }
     }
 
-    await ctx.reply(`Привет!`, {
+    await ctx.reply(`👋 Привет! Вы можете просмотреть историю своих заказов или сделать новый заказ прямо сейчас!\n\n Для просмотра истории заказов нажмите «История заказов».\n Чтобы сделать новый заказ, нажмите «Сделать заказ».`, {
         reply_markup: startKeyboard
     });
 });
@@ -61,8 +52,17 @@ bot.command('referral', async (ctx) => {
 
 bot.command('manager', async (ctx) => {
     await ctx.reply('Добро пожаловать в меню управления заказами!', {
-        reply_markup: managerKeyboard
-    });
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: 'Управлять заказами',
+                web_app: { url: webAppUrlManager }
+              }
+            ]
+          ]
+        }
+      });
 });
 
 bot.hears('История заказов', async (ctx) => {
