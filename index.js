@@ -86,7 +86,7 @@ bot.hears('История заказов', async (ctx) => {
                 }
                 ordersText += `${index + 1}. Заказ №: ${order.orderId},\n    Статус: ${statusSymbol} ${order.status}\n\n`;
             });
-            const remainingOrders = ORDERS_FOR_GIFT - user.orders.length;
+            const remainingOrders = ORDERS_FOR_GIFT - user.orders.filter(order => order.status === "Выполнен").length;
             if (remainingOrders > 0) {
                 ordersText += `Заказов до подарка: ${remainingOrders}\n`;
             } else {
