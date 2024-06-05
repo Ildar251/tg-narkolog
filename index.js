@@ -28,17 +28,27 @@ const startKeyboard = new Keyboard()
 
 bot.command('start', async (ctx) => {
     const referralId = ctx.message.text.split(' ')[1];
-    if (referralId) {
-        const db = await connectToDatabase();
-        const collection = db.collection('users');
+    if (referralId && referralId !== ctx.from.id.toString()) {
         const referrer = await collection.findOne({ telegramId: parseInt(referralId, 10) });
-        if (referrer) {
-            await collection.updateOne(
-                { telegramId: referrer.telegramId },
-                { $push: { friends: ctx.from.id } }
-            );
+        const user = await collection.findOne({ telegramId: ctx.from.id });
+
+        if (referrer && (!user || !user.referrerId)) {
+            if (user) {
+                await collection.updateOne(
+                    { telegramId: ctx.from.id },
+                    { $set: { referrerId: referrer.telegramId } }
+                );
+            } else {
+                await collection.insertOne({
+                    telegramId: ctx.from.id,
+                    referrerId: referrer.telegramId,
+                    orders: [],
+                    friends: [],
+                });
+            }
         }
     }
+
 
     await ctx.reply(`💥💥💥РЕФЕРАЛЬНАЯ ПРОГРАММА💥💥💥
     Всем подписчикам мы предлагаем участие в реферальной программе
@@ -162,7 +172,8 @@ bot.on('message:web_app_data', async (ctx) => {
                         status: orderStatus
                     }
                 ],
-                friends: []
+                friends: [],
+                referrerId: null
             };
             await collection.insertOne(newUser);
         }
