@@ -23,7 +23,7 @@ bot.api.setMyCommands([
 
 const startKeyboard = new Keyboard()
     .text('История заказов')
-    .webApp('Сделать заказ', webAppUrlForm)
+    .webApp('Сделать заказ', webAppUrlForm).row().text('Скидки за друзей')
     .resized();
 
 bot.command('start', async (ctx) => {
