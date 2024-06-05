@@ -81,7 +81,7 @@ bot.command('manager', async (ctx) => {
       });
 });
 
-bot.hears('История заказов', async (ctx) => {
+bot.hears('Скидки за друзей', async (ctx) => {
     const referralLink = `https://t.me/narkologKrasnodar_bot?start=${ctx.from.id}`;
     await ctx.reply(`Ваша реферальная ссылка: ${referralLink}`);
 })
