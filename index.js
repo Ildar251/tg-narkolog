@@ -18,12 +18,12 @@ bot.use(session({ initial: () => ({ step: 'default', data: {} }) }));
 
 bot.api.setMyCommands([
     { command: 'start', description: 'Запуск бота' },
-    { command: 'referral', description: 'Получить реферальную ссылку' },
 ]);
 
 const startKeyboard = new Keyboard()
     .text('История заказов')
-    .webApp('Сделать заказ', webAppUrlForm).row().text('Скидки за друзей')
+    .webApp('Сделать заказ', webAppUrlForm).row()
+    .text('Скидки за друзей')
     .resized();
 
 bot.command('start', async (ctx) => {
@@ -80,6 +80,11 @@ bot.command('manager', async (ctx) => {
         }
       });
 });
+
+bot.hears('История заказов', async (ctx) => {
+    const referralLink = `https://t.me/narkologKrasnodar_bot?start=${ctx.from.id}`;
+    await ctx.reply(`Ваша реферальная ссылка: ${referralLink}`);
+})
 
 bot.hears('История заказов', async (ctx) => {
     try {
