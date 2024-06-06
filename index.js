@@ -26,28 +26,31 @@ const startKeyboard = new Keyboard()
     .text('Скидки за друзей')
     .resized();
 
-bot.command('start', async (ctx) => {
-    const referralId = ctx.message.text.split(' ')[1];
-    if (referralId && referralId !== ctx.from.id.toString()) {
-        const referrer = await collection.findOne({ telegramId: parseInt(referralId, 10) });
-        const user = await collection.findOne({ telegramId: ctx.from.id });
-
-        if (referrer && (!user || !user.referrerId)) {
-            if (user) {
-                await collection.updateOne(
-                    { telegramId: ctx.from.id },
-                    { $set: { referrerId: referrer.telegramId } }
-                );
-            } else {
-                await collection.insertOne({
-                    telegramId: ctx.from.id,
-                    referrerId: referrer.telegramId,
-                    orders: [],
-                    friends: [],
-                });
+    bot.command('start', async (ctx) => {
+        const referralId = ctx.message.text.split(' ')[1];
+        const db = await connectToDatabase();
+        const collection = db.collection('users');
+    
+        if (referralId && referralId !== ctx.from.id.toString()) {
+            const referrer = await collection.findOne({ telegramId: parseInt(referralId, 10) });
+            const user = await collection.findOne({ telegramId: ctx.from.id });
+    
+            if (referrer && (!user || !user.referrerId)) {
+                if (user) {
+                    await collection.updateOne(
+                        { telegramId: ctx.from.id },
+                        { $set: { referrerId: referrer.telegramId } }
+                    );
+                } else {
+                    await collection.insertOne({
+                        telegramId: ctx.from.id,
+                        referrerId: referrer.telegramId,
+                        orders: [],
+                        friends: [],
+                    });
+                }
             }
         }
-    }
 
 
     await ctx.reply(`💥💥💥РЕФЕРАЛЬНАЯ ПРОГРАММА💥💥💥
@@ -135,17 +138,14 @@ bot.hears('История заказов', async (ctx) => {
     }
 });
 
-// Handle web app data
 bot.on('message:web_app_data', async (ctx) => {
     try {
         const data = JSON.parse(ctx.message.web_app_data.data);
         const phone = data.phone;
         const address = data.address;
 
-        // Генерируем уникальный номер заказа
+        // Генерация уникального номера заказа
         const orderId = uuidv4().substring(0, 8);
-
-        // Добавляем статус заказа
         const orderStatus = "В обработке";
 
         await ctx.reply(`Данные получены:\nТелефон: ${phone}\nАдрес: ${address}\nID заказа: ${orderId}\nСтатус заказа: ${orderStatus}`);
@@ -155,22 +155,17 @@ bot.on('message:web_app_data', async (ctx) => {
 
         const user = await collection.findOne({ telegramId: ctx.from.id });
         if (user) {
-            // Если пользователь уже существует, добавляем новый заказ в массив orders
             await collection.updateOne(
                 { telegramId: ctx.from.id },
                 { $push: { orders: { orderId: orderId, status: orderStatus } } }
             );
         } else {
-            // Если пользователь новый, создаем запись с массивом orders
             const newUser = {
                 telegramId: ctx.from.id,
                 phone: phone,
                 address: address,
                 orders: [
-                    {
-                        orderId: orderId,
-                        status: orderStatus
-                    }
+                    { orderId: orderId, status: orderStatus }
                 ],
                 friends: [],
                 referrerId: null
