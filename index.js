@@ -95,10 +95,19 @@ bot.command('manager', async (ctx) => {
 });
 
 bot.hears('Скидки за друзей', async (ctx) => {
-    const referralLink = `https://t.me/narkologKrasnodar_bot?start=${ctx.from.id}`;
-    const friendsCount = user.friends ? user.friends.length : 0;
+    try {
+        const db = await connectToDatabase();
+        const collection = db.collection('users');
+        const user = await collection.findOne({ telegramId: ctx.from.id });
 
-    await ctx.reply(`Ваша реферальная ссылка: ${referralLink}\n\n Вы привели ${friendsCount} друзей`);
+        const referralLink = `https://t.me/narkologKrasnodar_bot?start=${ctx.from.id}`;
+        const friendsCount = user && user.friends ? user.friends.length : 0;
+
+        await ctx.reply(`Ваша реферальная ссылка: ${referralLink}\nВы привели ${friendsCount} друзей.`);
+    } catch (error) {
+        console.error('Error retrieving referral data:', error);
+        await ctx.reply('Произошла ошибка при получении данных реферальной программы.');
+    }
 })
 
 bot.hears('История заказов', async (ctx) => {
