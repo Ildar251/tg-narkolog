@@ -96,7 +96,9 @@ bot.command('manager', async (ctx) => {
 
 bot.hears('Скидки за друзей', async (ctx) => {
     const referralLink = `https://t.me/narkologKrasnodar_bot?start=${ctx.from.id}`;
-    await ctx.reply(`Ваша реферальная ссылка: ${referralLink}`);
+    const friendsCount = user.friends ? user.friends.length : 0;
+
+    await ctx.reply(`Ваша реферальная ссылка: ${referralLink}\n\n Вы привели ${friendsCount} друзей`);
 })
 
 bot.hears('История заказов', async (ctx) => {
@@ -126,9 +128,6 @@ bot.hears('История заказов', async (ctx) => {
             } else {
                 ordersText += `Поздравляем! Вы получили подарок!\n`;
             }
-
-            const friendsCount = user.friends ? user.friends.length : 0;
-            ordersText += `Вы привели ${friendsCount} друзей`;
 
             await ctx.reply(ordersText);
         }
