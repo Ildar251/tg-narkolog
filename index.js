@@ -170,6 +170,7 @@ bot.on('message:web_app_data', async (ctx) => {
         const collection = db.collection('users');
 
         const user = await collection.findOne({ telegramId: ctx.from.id });
+        const referrerId = user && user.referrerId;
         if (user) {
             await collection.updateOne(
                 { telegramId: ctx.from.id },
@@ -185,7 +186,7 @@ bot.on('message:web_app_data', async (ctx) => {
                     { orderId: orderId, status: orderStatus }
                 ],
                 friends: [],
-                referrerId: referrerId ? parseInt(referrerId, 10) : null // Сохраняем ID реферера
+               referrerId: referrerId ? parseInt(referrerId, 10) : null // Сохраняем ID реферера
             };
             await collection.insertOne(newUser);
         }
