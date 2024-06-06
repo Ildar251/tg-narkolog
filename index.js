@@ -156,7 +156,15 @@ bot.on('message:web_app_data', async (ctx) => {
         const orderId = uuidv4().substring(0, 8);
         const orderStatus = "В обработке";
 
-        await ctx.reply(`Данные получены:\nТелефон: ${phone}\nАдрес: ${address}\nID заказа: ${orderId}\nСтатус заказа: ${orderStatus}`);
+        const message = `
+<b>Данные получены:</b>
+📞 <b>Телефон:</b> ${phone}
+📍 <b>Адрес:</b> ${address}
+🆔 <b>ID заказа:</b> ${orderId}
+📦 <b>Статус заказа:</b> ${orderStatus === 'В обработке' ? '🟡 В обработке' : orderStatus === 'Отменен' ? '🔴 Отменен' : '🟢 Выполнен'}
+`;
+
+        await ctx.reply(message, { parse_mode: 'HTML' });
 
         const db = await connectToDatabase();
         const collection = db.collection('users');
@@ -181,8 +189,6 @@ bot.on('message:web_app_data', async (ctx) => {
             };
             await collection.insertOne(newUser);
         }
-
-        ctx.reply('Ваши данные сохранены в базе данных.');
     } catch (error) {
         console.error('Error parsing web app data:', error);
         await ctx.reply('Произошла ошибка при обработке данных.');
