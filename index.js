@@ -26,31 +26,31 @@ const startKeyboard = new Keyboard()
     .text('Скидки за друзей')
     .resized();
 
-    bot.command('start', async (ctx) => {
-        const referralId = ctx.message.text.split(' ')[1];
-        const db = await connectToDatabase();
-        const collection = db.collection('users');
-    
-        if (referralId && referralId !== ctx.from.id.toString()) {
-            const referrer = await collection.findOne({ telegramId: parseInt(referralId, 10) });
-            const user = await collection.findOne({ telegramId: ctx.from.id });
-    
-            if (referrer && (!user || !user.referrerId)) {
-                if (user) {
-                    await collection.updateOne(
-                        { telegramId: ctx.from.id },
-                        { $set: { referrerId: referrer.telegramId } }
-                    );
-                } else {
-                    await collection.insertOne({
-                        telegramId: ctx.from.id,
-                        referrerId: referrer.telegramId,
-                        orders: [],
-                        friends: [],
-                    });
-                }
+bot.command('start', async (ctx) => {
+    const referralId = ctx.message.text.split(' ')[1];
+    const db = await connectToDatabase();
+    const collection = db.collection('users');
+
+    if (referralId && referralId !== ctx.from.id.toString()) {
+        const referrer = await collection.findOne({ telegramId: parseInt(referralId, 10) });
+        const user = await collection.findOne({ telegramId: ctx.from.id });
+
+        if (referrer && (!user || !user.referrerId)) {
+            if (user) {
+                await collection.updateOne(
+                    { telegramId: ctx.from.id },
+                    { $set: { referrerId: referrer.telegramId } }
+                );
+            } else {
+                await collection.insertOne({
+                    telegramId: ctx.from.id,
+                    referrerId: referrer.telegramId,
+                    orders: [],
+                    friends: [],
+                });
             }
         }
+    }
 
 
     await ctx.reply(`💥💥💥РЕФЕРАЛЬНАЯ ПРОГРАММА💥💥💥
@@ -82,16 +82,16 @@ bot.command('referral', async (ctx) => {
 bot.command('manager', async (ctx) => {
     await ctx.reply('Добро пожаловать в меню управления заказами!', {
         reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: 'Управлять заказами',
-                web_app: { url: webAppUrlManager }
-              }
+            inline_keyboard: [
+                [
+                    {
+                        text: 'Управлять заказами',
+                        web_app: { url: webAppUrlManager }
+                    }
+                ]
             ]
-          ]
         }
-      });
+    });
 });
 
 bot.hears('Скидки за друзей', async (ctx) => {
@@ -182,12 +182,16 @@ bot.on('message:web_app_data', async (ctx) => {
                 phone: phone,
                 address: address,
                 orders: [
-                    { orderId: orderId, status: orderStatus }
+                    {
+                        orderId: orderId,
+                        status: orderStatus
+                    }
                 ],
                 friends: [],
-                referrerId: null
+                referrerId: referrerId ? parseInt(referrerId, 10) : null // Сохраняем ID реферера
             };
             await collection.insertOne(newUser);
+
         }
     } catch (error) {
         console.error('Error parsing web app data:', error);
