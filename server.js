@@ -13,7 +13,7 @@ const bot = new Bot(process.env.BOT_API_KEY);
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/orders', async (req, res) => {
+app.get(`/${process.env.API_URL}/orders`, async (req, res) => {
     try {
         const db = await connectToDatabase();
         const collection = db.collection('users');
@@ -25,7 +25,7 @@ app.get('/api/orders', async (req, res) => {
     }
 });
 
-app.post('/api/orders/update-status', async (req, res) => {
+app.post(`/${process.env.API_URL}/orders/update-status`, async (req, res) => {
     const { telegramId, orderId, newStatus } = req.body;
     try {
         const db = await connectToDatabase();

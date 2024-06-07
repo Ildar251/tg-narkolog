@@ -75,7 +75,7 @@ const startKeyboard = new Keyboard()
 });
 
 bot.command('referral', async (ctx) => {
-    const referralLink = `https://t.me/narkologKrasnodar_bot?start=${ctx.from.id}`;
+    const referralLink = `${process.env.TG_URL}?start=${ctx.from.id}`;
     await ctx.reply(`Ваша реферальная ссылка: ${referralLink}`);
 });
 
@@ -100,7 +100,7 @@ bot.hears('Скидки за друзей', async (ctx) => {
         const collection = db.collection('users');
         const user = await collection.findOne({ telegramId: ctx.from.id });
 
-        const referralLink = `https://t.me/narkologKrasnodar_bot?start=${ctx.from.id}`;
+        const referralLink = `${process.env.TG_URL}?start=${ctx.from.id}`;
         const friendsCount = user && user.friends ? user.friends.length : 0;
 
         await ctx.reply(`Ваша реферальная ссылка: ${referralLink}\n\nВы привели друзей: ${friendsCount}`);
