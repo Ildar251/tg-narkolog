@@ -8,8 +8,8 @@ const bot = new Bot(process.env.BOT_API_KEY);
 
 const router = new Router((ctx) => ctx.session.step);
 
-const webAppUrlForm = 'http://static.23.189.179.185.ip.webhost1.net/';
-const webAppUrlManager = 'http://static.23.189.179.185.ip.webhost1.net/manager';
+const webAppUrlForm = 'https://static.23.189.179.185.ip.webhost1.net/';
+const webAppUrlManager = 'https://static.23.189.179.185.ip.webhost1.net/manager';
 
 // Количество заказов до подарка
 const ORDERS_FOR_GIFT = 5;
