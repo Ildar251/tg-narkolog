@@ -1,7 +1,6 @@
 {
   "name": "telegrambot",
   "version": "1.0.0",
-  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js"
