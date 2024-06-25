@@ -26,55 +26,63 @@ const startKeyboard = new Keyboard()
     .text('Скидки за друзей')
     .resized();
 
-    bot.command('start', async (ctx) => {
-        const referralId = ctx.message.text.split(' ')[1];
-        const db = await connectToDatabase();
-        const collection = db.collection('users');
-    
-        if (referralId && referralId !== ctx.from.id.toString()) {
-            const referrer = await collection.findOne({ telegramId: parseInt(referralId, 10) });
-            const user = await collection.findOne({ telegramId: ctx.from.id });
-    
-            if (referrer && (!user || !user.referrerId)) {
-                if (user) {
-                    await collection.updateOne(
-                        { telegramId: ctx.from.id },
-                        { $set: { referrerId: referrer.telegramId } }
-                    );
-                } else {
-                    await collection.insertOne({
-                        telegramId: ctx.from.id,
-                        referrerId: referrer.telegramId,
-                        orders: [],
-                        friends: [],
-                    });
-                }
-            }
-        }
+bot.command('start', async (ctx) => {
+    const referralId = ctx.message.text.split(' ')[1];
+    const db = await connectToDatabase();
+    const collection = db.collection('users');
 
+    // Проверяем, существует ли пользователь в базе данных
+    const user = await collection.findOne({ telegramId: ctx.from.id });
+
+    // Если пользователь не существует, добавляем его в базу данных
+    if (!user) {
+        const newUser = {
+            telegramId: ctx.from.id,
+            userName: ctx.from.username,
+            referrerId: referralId ? parseInt(referralId, 10) : null, // Если есть реферальный ID, сохраняем его
+            orders: [],
+            friends: []
+        };
+        await collection.insertOne(newUser);
+    } else if (referralId && referralId !== ctx.from.id.toString() && !user.referrerId) {
+        // Обновляем реферальный ID, если он не установлен
+        await collection.updateOne(
+            { telegramId: ctx.from.id },
+            { $set: { referrerId: parseInt(referralId, 10) } }
+        );
+    }
 
     await ctx.reply(`💥💥💥РЕФЕРАЛЬНАЯ ПРОГРАММА💥💥💥
-    Всем подписчикам мы предлагаем участие в реферальной программе
-    - Первый вызов скидка 15%
-    - Каждый пятый вызов бесплатно!
-    - Каждый шестой вызов скидка 15%
-     
-    Уважаемые подписчики и посетители канала - мы создали данный ресурс для удобства заказа наркологических услуг на дом
-    - Нарколог на дом приедет к вам за 40 минут вы можете написать нам в чат или же позвонить по номеру 
-    
-    ☎️ 8 918 677-64-93
-    💬 Чат с наркологом @telegramchatr
-    
-    Условие - нужно быть подписанным на канал и обратиться в чат с заказом. Все обращения фиксируются и вы получаете свои скидки и бонусы.
-    
-    Пригласи друга - если человек подпишется на канал и закажет у нас услугу то вы получите 25% скидку на следующий вызов! Приходите, будет интересно
-    
-    📌`, {
+        Всем подписчикам мы предлагаем участие в реферальной программе
+        - Первый вызов скидка 15%
+        - Каждый пятый вызов бесплатно!
+        - Каждый шестой вызов скидка 15%
+         
+        Уважаемые подписчики и посетители канала - мы создали данный ресурс для удобства заказа наркологических услуг на дом
+        - Нарколог на дом приедет к вам за 40 минут вы можете написать нам в чат или же позвонить по номеру 
+        
+        ☎️ 8 918 677-64-93
+        💬 Чат с наркологом @telegramchatr
+        
+        Условие - нужно быть подписанным на канал и обратиться в чат с заказом. Все обращения фиксируются и вы получаете свои скидки и бонусы.
+        
+        Пригласи друга - если человек подпишется на канал и закажет у нас услугу то вы получите 25% скидку на следующий вызов! Приходите, будет интересно
+        
+        📌`, {
         reply_markup: startKeyboard
     });
 });
 
 bot.command('referral', async (ctx) => {
+    const db = await connectToDatabase();
+    const collection = db.collection('users');
+
+    const user = await collection.findOne({ telegramId: ctx.from.id });
+    if (!user) {
+        await ctx.reply('Пожалуйста, используйте команду /start перед созданием реферальной ссылки.');
+        return;
+    }
+
     const referralLink = `${process.env.TG_URL}?start=${ctx.from.id}`;
     await ctx.reply(`Ваша реферальная ссылка: ${referralLink}`);
 });
@@ -82,16 +90,16 @@ bot.command('referral', async (ctx) => {
 bot.command('manager', async (ctx) => {
     await ctx.reply('Добро пожаловать в меню управления заказами!', {
         reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: 'Управлять заказами',
-                web_app: { url: webAppUrlManager }
-              }
+            inline_keyboard: [
+                [
+                    {
+                        text: 'Управлять заказами',
+                        web_app: { url: webAppUrlManager }
+                    }
+                ]
             ]
-          ]
         }
-      });
+    });
 });
 
 bot.hears('Скидки за друзей', async (ctx) => {
@@ -179,14 +187,14 @@ bot.on('message:web_app_data', async (ctx) => {
         } else {
             const newUser = {
                 telegramId: ctx.from.id,
-                userName: ctx.from.username, 
+                userName: ctx.from.username,
                 phone: phone,
                 address: address,
                 orders: [
                     { orderId: orderId, status: orderStatus }
                 ],
                 friends: [],
-               referrerId: referrerId ? parseInt(referrerId, 10) : null // Сохраняем ID реферера
+                referrerId: referrerId ? parseInt(referrerId, 10) : null // Сохраняем ID реферера
             };
             await collection.insertOne(newUser);
         }
